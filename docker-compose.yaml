@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgresql_container
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: IdentityDb
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    volumes:
+      - postgre_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3.12.14-management
+    container_name: rabbitmq_app
+    environment:
+      - RABBITMQ_DEFAULT_USER=rmuser
+      - RABBITMQ_DEFAULT_PASS=rmpassword
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    ports:
+      - 15672:15672
+      - 5672:5672
+    networks:
+      - mynetwork
+    restart: always
+
+  identity:
+    image: identityms
+    build:
+      context: ./IdentityMS
+      dockerfile: Dockerfile
+    container_name: identity_container
+    environment:
+      ASPNETCORE_URLS: http://+:80
+    depends_on:
+      - postgres
+    ports:
+      - 5036:80
+    networks:
+      - mynetwork
+    restart: always
+
+  users:
+    image: usersms
+    build:
+      context: ./UsersMS
+      dockerfile: Dockerfile
+    container_name: users_container
+    environment:
+      ASPNETCORE_URLS: http://+:80
+    ports:
+      - 5196:80
+    networks:
+      - mynetwork
+    restart: always
+
+  mongo:
+    image: mongo
+    container_name: mongodb
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - 27017:27017
+    networks:
+      - mynetwork
+    restart: always
+
+  gateway:
+    image: gateway
+    build:
+      context: ./GatewayMS
+      dockerfile: Dockerfile
+    container_name: gateway_container
+    depends_on:
+      - identity
+      - users
+    environment:
+      ASPNETCORE_URLS: http://+:80
+    ports:
+      - 5268:80
+    networks:
+      - mynetwork
+    restart: always
+
+
+networks:
+  mynetwork:
+    driver: bridge
+  
+volumes:
+  postgre_data:
+  mongodb_data:
