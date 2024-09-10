@@ -6,7 +6,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using IdentityMS.Data;
 using IdentityMS.Models;
+using IdentityMS.Options;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
 namespace IdentityMS.Controllers;
@@ -16,9 +18,14 @@ public class IdentityController : ControllerBase
     private readonly IdentityMsDbContext dbContext;
     private readonly ConnectionFactory rabbitMqConnectionFactory;
 
-    public IdentityController(IdentityMsDbContext dbContext)
+    public IdentityController(IdentityMsDbContext dbContext, IOptionsSnapshot<RabbitMqOptions> optionsSnapshot)
     {
         this.dbContext = dbContext;
+        this.rabbitMqConnectionFactory = new ConnectionFactory() {
+                HostName = optionsSnapshot.Value.HostName,
+                UserName = optionsSnapshot.Value.UserName,
+                Password = optionsSnapshot.Value.Password
+            };
     }
 
     [HttpPost("api/[controller]/[action]")]
