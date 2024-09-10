@@ -30,7 +30,7 @@ public class IdentityController : ControllerBase
 
             using var connection = this.rabbitMqConnectionFactory.CreateConnection();
             using var channel = connection.CreateModel();
-            var destination = "rabbit_mq";
+            var destination = "new_user";
 
             var result = channel.QueueDeclare(
                 queue: destination,
