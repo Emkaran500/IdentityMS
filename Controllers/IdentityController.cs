@@ -33,7 +33,9 @@ public class IdentityController : ControllerBase
     {
         try
         {
+            var count = this.dbContext.Users.Count();
             this.dbContext.Users.Add(user);
+            this.dbContext.SaveChanges();
 
             using var connection = this.rabbitMqConnectionFactory.CreateConnection();
             using var channel = connection.CreateModel();
